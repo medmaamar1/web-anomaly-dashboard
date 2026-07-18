@@ -7,6 +7,7 @@ from ingestor import start_ingestor
 from preprocessor import preprocess
 from features import extract_features
 from detector import detect_anomalies
+from store import store
 
 # -----------------------------
 # Initialize Session State
@@ -45,6 +46,21 @@ if new_lines:
             if len(f_df) > 1:
                 detect_anomalies(f_df)  # This modifies f_df in place
                 st.session_state.features_df = f_df
+                
+                # Push anomalies to Supabase
+                if 'anomaly' in f_df.columns:
+                    anomalies_only = f_df[f_df['anomaly'] == -1]
+                    if not anomalies_only.empty:
+                        # Only push timestamps we haven't pushed yet
+                        if 'last_pushed_ts' not in st.session_state:
+                            st.session_state.last_pushed_ts = pd.Timestamp.min.tz_localize(None)
+                        
+                        # Ensure timezone naive for comparison if needed, or just compare directly
+                        new_anomalies = anomalies_only[anomalies_only.index > st.session_state.last_pushed_ts]
+                        
+                        if not new_anomalies.empty:
+                            store.insert_anomalies(new_anomalies)
+                            st.session_state.last_pushed_ts = new_anomalies.index.max()
     except Exception as e:
         st.sidebar.error(f"Pipeline Error: {e}")
 
