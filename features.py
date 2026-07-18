@@ -1,6 +1,6 @@
 import pandas as pd
 def extract_features(data):
-    data=data.set_index('time')
+    data=data.set_index('date')
     window='5min'
     features=data.groupby(pd.Grouper(freq=window)).agg(
         {
