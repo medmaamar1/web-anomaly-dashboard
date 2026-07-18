@@ -4,7 +4,7 @@ import pandas as pd
 from ingestor import start_ingestor
 def parse_line(line):
     parts=line.split()
-    date=pd.to_datetime(parts[3][1:],format='%d/%b/%y:%H:%M:%S')
+    date=pd.to_datetime(parts[3][1:],format='%d/%b/%Y:%H:%M:%S')
     return {
       'ip': parts[0],
       'date': date,
